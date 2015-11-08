@@ -12,8 +12,9 @@ Preload.prototype = {
 var Dungeon = function() {};
 Dungeon.prototype = {
 
-  mapWidth: 64,
-  mapHeight: 64,
+  mapWidth: 32,
+  mapHeight: 32,
+  roomCount: 8,
 
   map: null,
 
@@ -39,9 +40,39 @@ Dungeon.prototype = {
     // generate map data
     for (var x = 0; x < this.mapWidth; x++) {
       for (var y = 0; y < this.mapHeight; y++) {
-        map[x][y] = Math.random() < 0.3 ? 'wall' : undefined;
+        map[x][y] = 'wall';
       }
     }
+    var rooms = [];
+    for (var i = 0; i < this.roomCount; i++) {
+      var roomX = ~~(Math.random() * (this.mapWidth - 10) + 1);
+      var roomY = ~~(Math.random() * (this.mapHeight - 10) + 1);
+      var roomWidth = ~~(Math.random() * 6 + 4);
+      var roomHeight = ~~(Math.random() * 6 + 4);
+
+      var colliding = false;
+      rooms.forEach(function (room) {
+        if (roomX < room.x + room.width + 1 && roomX + roomWidth > room.x - 1 && roomY < room.y + room.height + 1 && roomY + roomHeight > room.y - 1) {
+          colliding = true;
+        }
+      });
+
+      if (!colliding) {
+        rooms.push({x: roomX, y: roomY, width: roomWidth, height: roomHeight});
+      }
+      else {
+        i--;
+      }
+    }
+    rooms.forEach(function(room) {
+      for (var ix = room.x; ix < room.x + room.width; ix++) {
+        for (var iy = room.y; iy < room.y + room.height; iy++) {
+          map[ix][iy] = undefined;
+        }
+      }
+    });
+
+
 
     // render static map sprites
     for (var x = 0; x < this.mapWidth; x++) {
