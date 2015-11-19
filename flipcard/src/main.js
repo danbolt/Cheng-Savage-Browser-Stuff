@@ -4,6 +4,7 @@ var GREY = 0xFFFFFF;
 var BLOCK = 0xFFFFFF;
 
 var playerMoveSpeed = 200;
+var roundTime = 5;
 
 var gameplay = {
 
@@ -38,6 +39,18 @@ var gameplay = {
 
     this.redScoreText = this.game.add.text(64, 8, 'RED: XXX', {fill: '#FF4136', font: '32px Monaco'});
     this.blueScoreText = this.game.add.text(400, 8, 'BLUE: XXX', {fill: '#0074D9', font: '32px Monaco'});
+
+    this.secondsLeft = roundTime;
+    this.timeRemainingText = this.game.add.text(256, 8, this.secondsLeft.toString(), {fill: 'white', font: '36px Monaco' });
+    this.timeLoop = this.game.time.events.loop(1000, function() {
+      this.secondsLeft--;
+
+      if (this.secondsLeft < 0) {
+        this.secondsLeft = 0;
+        this.game.time.events.remove(this.timeLoop);
+      }
+      this.timeRemainingText.text = this.secondsLeft.toString();
+    }, this);
 
     this.tilemap = [];
     for (var i = 0; i < 16; i++) {
