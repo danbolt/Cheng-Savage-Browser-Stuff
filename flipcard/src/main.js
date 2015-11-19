@@ -4,7 +4,7 @@ var GREY = 0xFFFFFF;
 var BLOCK = 0xFFFFFF;
 
 var playerMoveSpeed = 200;
-var roundTime = 5;
+var roundTime = 100;
 
 var gameplay = {
 
@@ -12,19 +12,27 @@ var gameplay = {
     if (x < 0 || x >= 16 || y < 0 || y >= 12) { return; }
 
     if (this.tilemap[x][y].color === RED) {
-      this.setTileAffinity(x, y, BLUE);
+      this.setTileAffinity(x, y, BLUE, true);
     } else if (this.tilemap[x][y].color === BLUE) {
-      this.setTileAffinity(x, y, RED);
+      this.setTileAffinity(x, y, RED, true);
     }
     else if (this.tilemap[x][y].color === GREY) {
-      this.setTileAffinity(x, y, prefferedColour);
+      this.setTileAffinity(x, y, prefferedColour, true);
     }
   },
-  setTileAffinity: function(x, y, color) {
+  setTileAffinity: function(x, y, color, animate) {
     if (x < 0 || x >= 16 || y < 0 || y >= 12) { return; }
 
     this.tilemap[x][y].color = color;
     this.tilemap[x][y].sprite.tint = color;
+
+    if (animate && !(this.tilemap[x][y].sprite.tweening)) {
+      this.tilemap[x][y].sprite.tweening = true;
+      var newTween = this.game.add.tween(this.tilemap[x][y].sprite);
+      newTween.to({rotation: this.tilemap[x][y].sprite.rotation + (Math.PI / 2)}, 150);
+      newTween.onComplete.add(function() { this.tilemap[x][y].sprite.tweening = false }, this);
+      newTween.start();
+    }
   },
 
   preload: function() {
@@ -56,7 +64,8 @@ var gameplay = {
     for (var i = 0; i < 16; i++) {
       this.tilemap.push([]);
       for (var j = 0; j < 12; j++) {
-        var card = this.game.add.sprite(this.mapStartSpot.x + i * 32, this.mapStartSpot.y + j * 32, 'blocks', 1);
+        var card = this.game.add.sprite(this.mapStartSpot.x + i * 32 + 16, this.mapStartSpot.y + j * 32 + 16, 'blocks', 1);
+        card.anchor.setTo(0.5, 0.5);
         this.flipcards.addChild(card);
         this.tilemap[i].push({
           color: GREY,
