@@ -34,7 +34,10 @@ var gameplay = {
 
     this.flipcards = this.game.add.group();
 
-    this.mapStartSpot = new Phaser.Point(64, 64);
+    this.mapStartSpot = new Phaser.Point(64, 78);
+
+    this.redScoreText = this.game.add.text(64, 8, 'RED: XXX', {fill: '#FF4136', font: '32px Monaco'});
+    this.blueScoreText = this.game.add.text(400, 8, 'BLUE: XXX', {fill: '#0074D9', font: '32px Monaco'});
 
     this.tilemap = [];
     for (var i = 0; i < 16; i++) {
@@ -137,6 +140,21 @@ var gameplay = {
     } else {
       this.player2.body.velocity.y = 0;
     }
+
+    // tally up the scores
+    var redCount = 0;
+    var blueCount = 0;
+    for (var i = 0; i < 16; i++)  {
+      for (var j = 0; j < 12; j++) {
+        if (this.tilemap[i][j].color === RED) {
+          redCount++;
+        } else if (this.tilemap[i][j].color === BLUE) {
+          blueCount++;
+        }
+      }
+    }
+    this.redScoreText.text = 'RED: ' + redCount;
+    this.blueScoreText.text = 'BLUE: ' + blueCount;
 
     this.game.physics.arcade.collide(this.player1, this.walls);
     this.game.physics.arcade.collide(this.player2, this.walls);
