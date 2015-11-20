@@ -269,6 +269,12 @@ gameplay.prototype = {
       w.body.immovable = true;
     }
 
+    // Capture keyboard controls
+    this.game.input.keyboard.addKeyCapture(Phaser.Keyboard.DOWN);
+    this.game.input.keyboard.addKeyCapture(Phaser.Keyboard.UP);
+    this.game.input.keyboard.addKeyCapture(Phaser.Keyboard.LEFT);
+    this.game.input.keyboard.addKeyCapture(Phaser.Keyboard.RIGHT);
+
     this.resultText = this.game.add.text(256, 256, 'RED WINS', {fill: 'white', font: '32px Monaco'});
     this.resultText.visible = false;
 
