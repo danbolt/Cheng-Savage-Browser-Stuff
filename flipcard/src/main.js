@@ -1,10 +1,10 @@
 var RED = 0xFF4136;
 var BLUE = 0x0074D9;
-var GREY = 0xFFFFFF;
+var GREY = 0xDDDDDD;
 var BLOCK = 'BLOCK';
 
 var playerMoveSpeed = 200;
-var roundTime = 100;
+var roundTime = 25;
 
 var preload = function() {};
 preload.prototype = {
@@ -16,9 +16,22 @@ preload.prototype = {
   }
 };
 
-var title = function() {};
-title.prototype = {
-  //
+var gameOver = function() {};
+gameOver.prototype = {
+  init: function(result) {
+    this.result = result;
+  },
+  create: function() {
+    this.game.add.text(64, 64, this.result === 'tie' ? 'TIE GAME' : (this.result === 'red' ? 'RED WINS' : 'BLUE WINS'), {fill: (this.result === 'tie' ? '#FFFFFF' : (this.result === 'red' ? '#FF0000' : '#0000FF')), font: '32px Monaco'});
+
+    var resetButton = this.game.add.button(64, 128, 'blocks', function () { this.game.state.start('gameplay'); }, this, 0, 1, 0, 1);
+    resetButton.width = 320;
+    resetButton.height = 120;
+
+    this.game.add.text(96, 156, 'PLAY AGAIN', {font: '32px Monaco'});
+  },
+  update: function () {
+  }
 };
 
 var gameplay = function() {};
@@ -69,9 +82,57 @@ gameplay.prototype = {
       newTween.start();
     }
   },
+  timeLoopFunction: function() {
+    this.secondsLeft--;
+
+    if (this.secondsLeft < 0) {
+      this.secondsLeft = roundTime;
+      this.game.time.events.remove(this.timeLoop);
+      this.betweenRounds = true;
+      this.resultText.visible = true;
+      this.resultText.text = this.redCount === this.blueCount ? 'TIE' : (this.redCount > this.blueCount ? 'RED HAS MORE' : 'BLUE HAS MORE');
+      this.resultText.fill = this.redCount === this.blueCount ? 'black' : (this.redCount > this.blueCount ? 'red' : 'blue');
+
+      if (this.round < 3) {
+        this.roundIcons.children[this.round].tint = (this.redCount == this.blueCount) ? GREY : (this.redCount > this.blueCount ? RED : BLUE);
+        this.round++;
+
+        this.game.time.events.add(2000, function () {
+          this.game.time.events.loop(1000, this.timeLoopFunction, this);
+          this.betweenRounds = false;
+          this.resultText.visible = false;
+        }, this);
+      } else if (this.round === 3)
+      {
+        this.game.time.events.add(1000, function() {
+          var redWinCount = 0;
+          var blueWinCount = 0;
+          for (var i = 0; i < 3; i++) {
+            if (this.roundIcons.children[i].tint === RED) { redWinCount++; }
+            else if (this.roundIcons.children[i].tint === BLUE) { blueWinCount++; }
+          }
+          this.game.state.start('gameOver', true, false, (redWinCount === blueWinCount) ? 'tie' : (redWinCount > blueWinCount ? 'red': 'blue'));
+        }, this);
+      }
+    }
+    this.timeRemainingText.text = this.secondsLeft.toString();
+  },
 
   create: function() {
     this.game.stage.backgroundColor = '#363636';
+
+    this.redCount = 0;
+    this.blueCount = 0;
+
+    this.betweenRounds = false;
+
+    this.roundIcons = this.game.add.group();
+    for (var i = 0; i < 3; i++) {
+      var roundGlyph = this.game.add.sprite(16, 128 + i * 48, 'blocks', 1);
+      this.roundIcons.addChild(roundGlyph);
+    }
+
+    this.round = 0;
 
     this.walls = this.game.add.group();
 
@@ -84,15 +145,7 @@ gameplay.prototype = {
 
     this.secondsLeft = roundTime;
     this.timeRemainingText = this.game.add.text(256, 8, this.secondsLeft.toString(), {fill: 'white', font: '36px Monaco' });
-    this.timeLoop = this.game.time.events.loop(1000, function() {
-      this.secondsLeft--;
-
-      if (this.secondsLeft < 0) {
-        this.secondsLeft = 0;
-        this.game.time.events.remove(this.timeLoop);
-      }
-      this.timeRemainingText.text = this.secondsLeft.toString();
-    }, this);
+    this.timeLoop = this.game.time.events.loop(1000, this.timeLoopFunction, this);
 
     var counter = 5;
     this.tilemap = [];
@@ -156,6 +209,8 @@ gameplay.prototype = {
 
     this.player1Button = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
     this.player1Button.onDown.add(function () {
+      if (this.betweenRounds) { return; }
+
       this.setTileAffinity(~~((this.player1.x - this.mapStartSpot.x) / 32), ~~((this.player1.y - this.mapStartSpot.y) / 32), RED, 'flip');
       this.flipTileAffinity(~~((this.player1.x - this.mapStartSpot.x) / 32), ~~((this.player1.y - this.mapStartSpot.y) / 32) - 1, RED);
       this.flipTileAffinity(~~((this.player1.x - this.mapStartSpot.x) / 32), ~~((this.player1.y - this.mapStartSpot.y) / 32) + 1, RED);
@@ -180,6 +235,8 @@ gameplay.prototype = {
 
     this.player2Button = this.game.input.keyboard.addKey(Phaser.Keyboard.G);
     this.player2Button.onDown.add(function () {
+      if (this.betweenRounds) { return; }
+
       this.setTileAffinity(~~((this.player2.x - this.mapStartSpot.x) / 32), ~~((this.player2.y - this.mapStartSpot.y) / 32), BLUE, 'flip');
       this.flipTileAffinity(~~((this.player2.x - this.mapStartSpot.x) / 32), ~~((this.player2.y - this.mapStartSpot.y) / 32) - 1, BLUE);
       this.flipTileAffinity(~~((this.player2.x - this.mapStartSpot.x) / 32), ~~((this.player2.y - this.mapStartSpot.y) / 32) + 1, BLUE);
@@ -211,6 +268,11 @@ gameplay.prototype = {
       this.walls.addToHash(w);
       w.body.immovable = true;
     }
+
+    this.resultText = this.game.add.text(256, 256, 'RED WINS', {fill: 'white', font: '32px Monaco'});
+    this.resultText.visible = false;
+
+    this.game.world.bringToTop(this.roundIcons);
   },
   update: function() {
     this.p1Emitter.x = this.player1.x;
@@ -251,19 +313,19 @@ gameplay.prototype = {
     }
 
     // tally up the scores
-    var redCount = 0;
-    var blueCount = 0;
+    this.redCount = 0;
+    this.blueCount = 0;
     for (var i = 0; i < 16; i++)  {
       for (var j = 0; j < 12; j++) {
         if (this.tilemap[i][j].color === RED) {
-          redCount++;
+          this.redCount++;
         } else if (this.tilemap[i][j].color === BLUE) {
-          blueCount++;
+          this.blueCount++;
         }
       }
     }
-    this.redScoreText.text = 'RED: ' + redCount;
-    this.blueScoreText.text = 'BLUE: ' + blueCount;
+    this.redScoreText.text = 'RED: ' + this.redCount;
+    this.blueScoreText.text = 'BLUE: ' + this.blueCount;
 
     this.game.physics.arcade.collide(this.player1, this.walls);
     this.game.physics.arcade.collide(this.player2, this.walls);
@@ -275,7 +337,7 @@ var main = function() {
   var game = new Phaser.Game(640, 480, Phaser.AUTO, '', null, false, null, true, Phaser.Physics.ARCADE);
 
   game.state.add('preload', preload, false);
-  game.state.add('title', title, false);
+  game.state.add('gameOver', gameOver, false);
   game.state.add('gameplay', gameplay, false);
   game.state.start('preload');
 };
