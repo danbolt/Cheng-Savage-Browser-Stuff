@@ -12,25 +12,44 @@ var gameplay = {
     if (x < 0 || x >= 16 || y < 0 || y >= 12) { return; }
 
     if (this.tilemap[x][y].color === RED) {
-      this.setTileAffinity(x, y, BLUE, true);
+      this.setTileAffinity(x, y, BLUE, 'spin');
     } else if (this.tilemap[x][y].color === BLUE) {
-      this.setTileAffinity(x, y, RED, true);
+      this.setTileAffinity(x, y, RED, 'spin');
     }
     else if (this.tilemap[x][y].color === GREY) {
-      this.setTileAffinity(x, y, prefferedColour, true);
+      this.setTileAffinity(x, y, prefferedColour, 'spin');
     }
   },
   setTileAffinity: function(x, y, color, animate) {
     if (x < 0 || x >= 16 || y < 0 || y >= 12) { return; }
 
-    this.tilemap[x][y].color = color;
-    this.tilemap[x][y].sprite.tint = color;
+    if (!animate) {
+      this.tilemap[x][y].color = color;
+      this.tilemap[x][y].sprite.tint = color;
+    }
 
-    if (animate && !(this.tilemap[x][y].sprite.tweening)) {
+    if (animate === 'spin' && !(this.tilemap[x][y].sprite.tweening)) {
+      this.tilemap[x][y].color = color;
+      this.tilemap[x][y].sprite.tint = color;
+
       this.tilemap[x][y].sprite.tweening = true;
       var newTween = this.game.add.tween(this.tilemap[x][y].sprite);
       newTween.to({rotation: this.tilemap[x][y].sprite.rotation + (Math.PI / 2)}, 150);
-      newTween.onComplete.add(function() { this.tilemap[x][y].sprite.tweening = false }, this);
+      newTween.onComplete.add(function() { this.tilemap[x][y].sprite.tweening = false; }, this);
+      newTween.start();
+    } else if (animate === 'flip' && !(this.tilemap[x][y].sprite.tweening)) {
+      this.tilemap[x][y].color = color;
+
+      this.tilemap[x][y].sprite.tweening = true;
+      var newTween = this.game.add.tween(this.tilemap[x][y].sprite.scale);
+      var newTween2 = this.game.add.tween(this.tilemap[x][y].sprite.scale);
+      newTween.to({x: 0.5, y: 0.5}, 75);
+      newTween2.to({x: 1, y: 1}, 75);
+      newTween.onComplete.add(function() {
+        newTween2.start();
+        this.tilemap[x][y].sprite.tint = color;
+      }, this);
+      newTween2.onComplete.add(function() { this.tilemap[x][y].sprite.tweening = false; }, this);
       newTween.start();
     }
   },
@@ -74,7 +93,16 @@ var gameplay = {
       }
     }
 
-    this.player1 = this.game.add.sprite(this.mapStartSpot.x + 4 * 32, this.mapStartSpot.y + 6 * 32, 'blocks', 0);
+    this.p1Emitter = this.game.add.emitter(0, 0);
+    this.p1Emitter.makeParticles('blocks', 1);
+    this.p1Emitter.setScale(0.8, 0, 0.8, 0, 500, Phaser.Easing.Linear.None);
+    this.p1Emitter.start(false, 200, 30);
+    this.p1Emitter.setAll('tint', 0x8B0000);
+    this.p1Emitter.setXSpeed(-0, 0);
+    this.p1Emitter.setYSpeed(-0, 0);
+    this.p1Emitter.gravity = 0;
+
+    this.player1 = this.game.add.sprite(this.mapStartSpot.x + 4 * 32, this.mapStartSpot.y + 6 * 32, 'blocks', 1);
     this.player1.tint = 0x8B0000;
     this.player1.scale.setTo(0.8, 0.8);
     this.player1.anchor.setTo(0.5, 0.5);
@@ -82,14 +110,23 @@ var gameplay = {
 
     this.player1Button = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
     this.player1Button.onDown.add(function () {
-      this.setTileAffinity(~~((this.player1.x - this.mapStartSpot.x) / 32), ~~((this.player1.y - this.mapStartSpot.y) / 32), RED);
+      this.setTileAffinity(~~((this.player1.x - this.mapStartSpot.x) / 32), ~~((this.player1.y - this.mapStartSpot.y) / 32), RED, 'flip');
       this.flipTileAffinity(~~((this.player1.x - this.mapStartSpot.x) / 32), ~~((this.player1.y - this.mapStartSpot.y) / 32) - 1, RED);
       this.flipTileAffinity(~~((this.player1.x - this.mapStartSpot.x) / 32), ~~((this.player1.y - this.mapStartSpot.y) / 32) + 1, RED);
       this.flipTileAffinity(~~((this.player1.x - this.mapStartSpot.x) / 32) - 1, ~~((this.player1.y - this.mapStartSpot.y) / 32), RED);
       this.flipTileAffinity(~~((this.player1.x - this.mapStartSpot.x) / 32) + 1, ~~((this.player1.y - this.mapStartSpot.y) / 32), RED);
     }, this);
 
-    this.player2 = this.game.add.sprite(this.mapStartSpot.x + 12 * 32, this.mapStartSpot.y + 6 * 32, 'blocks', 0);
+    this.p2Emitter = this.game.add.emitter(0, 0);
+    this.p2Emitter.makeParticles('blocks', 1);
+    this.p2Emitter.setScale(0.8, 0, 0.8, 0, 500, Phaser.Easing.Linear.None);
+    this.p2Emitter.start(false, 200, 30);
+    this.p2Emitter.setAll('tint', 0x00008B);
+    this.p2Emitter.setXSpeed(-0, 0);
+    this.p2Emitter.setYSpeed(-0, 0);
+    this.p2Emitter.gravity = 0;
+
+    this.player2 = this.game.add.sprite(this.mapStartSpot.x + 12 * 32, this.mapStartSpot.y + 6 * 32, 'blocks', 1);
     this.player2.tint = 0x00008B;
     this.player2.scale.setTo(0.8, 0.8);
     this.player2.anchor.setTo(0.5, 0.5);
@@ -97,7 +134,7 @@ var gameplay = {
 
     this.player2Button = this.game.input.keyboard.addKey(Phaser.Keyboard.G);
     this.player2Button.onDown.add(function () {
-      this.setTileAffinity(~~((this.player2.x - this.mapStartSpot.x) / 32), ~~((this.player2.y - this.mapStartSpot.y) / 32), BLUE);
+      this.setTileAffinity(~~((this.player2.x - this.mapStartSpot.x) / 32), ~~((this.player2.y - this.mapStartSpot.y) / 32), BLUE, 'flip');
       this.flipTileAffinity(~~((this.player2.x - this.mapStartSpot.x) / 32), ~~((this.player2.y - this.mapStartSpot.y) / 32) - 1, BLUE);
       this.flipTileAffinity(~~((this.player2.x - this.mapStartSpot.x) / 32), ~~((this.player2.y - this.mapStartSpot.y) / 32) + 1, BLUE);
       this.flipTileAffinity(~~((this.player2.x - this.mapStartSpot.x) / 32) - 1, ~~((this.player2.y - this.mapStartSpot.y) / 32), BLUE);
@@ -131,6 +168,11 @@ var gameplay = {
     }
   },
   update: function() {
+    this.p1Emitter.x = this.player1.x;
+    this.p1Emitter.y = this.player1.y;
+    this.p2Emitter.x = this.player2.x;
+    this.p2Emitter.y = this.player2.y;
+
     // p1 controls
     if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
       this.player1.body.velocity.x = playerMoveSpeed;
@@ -162,6 +204,8 @@ var gameplay = {
     } else {
       this.player2.body.velocity.y = 0;
     }
+    //this.p2Emitter.setXSpeed(0, -this.player2.body.velocity.x);
+    //this.p2Emitter.setYSpeed(0, -this.player2.body.velocity.y);
 
     // tally up the scores
     var redCount = 0;
