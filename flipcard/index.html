@@ -1,16 +1,46 @@
 <!doctype html>
 <html>
   <head>
-    <title>Flip Card</title>
+    <title>Flip Card Dukeout</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <script src="lib/phaser.js"></script>
 
     <script src="src/main.js"></script>
 
+    <style>
+      body
+      {
+        background-color: black;
+        text-align: center;
+        color: white;
+
+        margin: 0px auto;
+        width: 640px;
+
+        font-family: 'Monaco', 'Lucida Console', monospace;
+      }
+
+      #gamewindow canvas
+      {
+        margin: 0px auto;
+      }
+
+      #description
+      {
+        text-align: left;
+      }
+    </style>
+
   </head>
 
   <body>
-
+    <h1>Flip Card Dukeout</h1>
+    <div id='gamewindow'></div>
+    <p id="description">Flip Card Dukeout is a game for two players on a desktop computer. The objective is to cover the most squares with your colour before the three rounds are up.</p>
+    <p id="description"><span style="color: red;">Player 1</span> uses the arrow keys to move and the M key to flip.</p>
+    <p id="description"><span style="color: blue;">Player 2</span> uses WASD to move and the G key to flip.</p>
     <script>main();</script>
   </body>
 </html>

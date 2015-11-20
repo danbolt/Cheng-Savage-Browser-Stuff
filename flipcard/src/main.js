@@ -280,37 +280,93 @@ gameplay.prototype = {
     this.p2Emitter.x = this.player2.x;
     this.p2Emitter.y = this.player2.y;
 
+    if (this.player1.target) {
+      if (!this.player1.target.isDown) {
+        this.player1.target = undefined;
+      }
+    }
+    this.game.input.pointers.forEach(function(pointer) {
+      if (!this.player1.target && pointer.isDown && Phaser.Point.distance(this.player1, pointer) < 32) {
+        this.player1.target = pointer;
+      }
+    }, this);
+
     // p1 controls
-    if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
+    if (this.player1.target) {
+      var angle = Math.atan2(this.player1.target.y - this.player1.y, this.player1.target.x - this.player1.x);
+      this.player1.body.velocity.x = playerMoveSpeed * Math.cos(angle);
+    } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
       this.player1.body.velocity.x = playerMoveSpeed;
     } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
       this.player1.body.velocity.x = -playerMoveSpeed;
-    } else {
+    } else if (!this.player1.target) {
       this.player1.body.velocity.x = 0;
     }
-    if (this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
+    if (this.player1.target) {
+      var angle = Math.atan2(this.player1.target.y - this.player1.y, this.player1.target.x - this.player1.x);
+      this.player1.body.velocity.y = playerMoveSpeed * Math.sin(angle);
+    } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
       this.player1.body.velocity.y = playerMoveSpeed;
     } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
       this.player1.body.velocity.y = -playerMoveSpeed;
-    } else {
+    } else if (!this.player1.target) {
       this.player1.body.velocity.y = 0;
     }
 
+    if (this.player2.target) {
+      if (!this.player2.target.isDown) {
+        this.player2.target = undefined;
+      }
+    }
+    this.game.input.pointers.forEach(function(pointer) {
+      if (!this.player2.target && pointer.isDown && Phaser.Point.distance(this.player2, pointer) < 32) {
+        this.player2.target = pointer;
+      }
+    }, this);
+
     // p2 controls
-    if (this.game.input.keyboard.isDown(Phaser.Keyboard.D)) {
+    if (this.player2.target) {
+      var angle = Math.atan2(this.player2.target.y - this.player2.y, this.player2.target.x - this.player2.x);
+      this.player2.body.velocity.x = playerMoveSpeed * Math.cos(angle);
+    } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.D)) {
       this.player2.body.velocity.x = playerMoveSpeed;
     } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.A)) {
       this.player2.body.velocity.x = -playerMoveSpeed;
-    } else {
+    } else if (!this.player2.target) {
       this.player2.body.velocity.x = 0;
     }
-    if (this.game.input.keyboard.isDown(Phaser.Keyboard.S)) {
+    if (this.player2.target) {
+      var angle = Math.atan2(this.player2.target.y - this.player2.y, this.player2.target.x - this.player2.x);
+      this.player2.body.velocity.y = playerMoveSpeed * Math.sin(angle);
+    } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.S)) {
       this.player2.body.velocity.y = playerMoveSpeed;
     } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.W)) {
       this.player2.body.velocity.y = -playerMoveSpeed;
-    } else {
+    } else if (!this.player2.target) {
       this.player2.body.velocity.y = 0;
     }
+
+    this.game.input.onTap.add(function(pointer) {
+      if (pointer.x > this.player1.x - 16 && pointer.x < this.player1.x + this.player1.width - 16 && pointer.y > this.player1.y - 16 && pointer.y < this.player1.y + this.player1.height - 16) {
+        if (this.betweenRounds) { return; }
+
+        this.setTileAffinity(~~((this.player1.x - this.mapStartSpot.x) / 32), ~~((this.player1.y - this.mapStartSpot.y) / 32), RED, 'flip');
+        this.flipTileAffinity(~~((this.player1.x - this.mapStartSpot.x) / 32), ~~((this.player1.y - this.mapStartSpot.y) / 32) - 1, RED);
+        this.flipTileAffinity(~~((this.player1.x - this.mapStartSpot.x) / 32), ~~((this.player1.y - this.mapStartSpot.y) / 32) + 1, RED);
+        this.flipTileAffinity(~~((this.player1.x - this.mapStartSpot.x) / 32) - 1, ~~((this.player1.y - this.mapStartSpot.y) / 32), RED);
+        this.flipTileAffinity(~~((this.player1.x - this.mapStartSpot.x) / 32) + 1, ~~((this.player1.y - this.mapStartSpot.y) / 32), RED);
+      }
+
+      if (pointer.x > this.player2.x - 16 && pointer.x < this.player2.x + this.player2.width - 16 && pointer.y > this.player2.y - 16 && pointer.y < this.player2.y + this.player2.height - 16) {
+        if (this.betweenRounds) { return; }
+
+        this.setTileAffinity(~~((this.player2.x - this.mapStartSpot.x) / 32), ~~((this.player2.y - this.mapStartSpot.y) / 32), BLUE, 'flip');
+        this.flipTileAffinity(~~((this.player2.x - this.mapStartSpot.x) / 32), ~~((this.player2.y - this.mapStartSpot.y) / 32) - 1, BLUE);
+        this.flipTileAffinity(~~((this.player2.x - this.mapStartSpot.x) / 32), ~~((this.player2.y - this.mapStartSpot.y) / 32) + 1, BLUE);
+        this.flipTileAffinity(~~((this.player2.x - this.mapStartSpot.x) / 32) - 1, ~~((this.player2.y - this.mapStartSpot.y) / 32), BLUE);
+        this.flipTileAffinity(~~((this.player2.x - this.mapStartSpot.x) / 32) + 1, ~~((this.player2.y - this.mapStartSpot.y) / 32), BLUE);
+      }
+    }, this);
 
     // tally up the scores
     this.redCount = 0;
@@ -334,7 +390,7 @@ gameplay.prototype = {
 };
 
 var main = function() {
-  var game = new Phaser.Game(640, 480, Phaser.AUTO, '', null, false, null, true, Phaser.Physics.ARCADE);
+  var game = new Phaser.Game(640, 480, Phaser.AUTO, 'gamewindow', null, false, null, true, Phaser.Physics.ARCADE);
 
   game.state.add('preload', preload, false);
   game.state.add('gameOver', gameOver, false);
