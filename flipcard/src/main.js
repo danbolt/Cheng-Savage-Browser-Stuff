@@ -1,7 +1,7 @@
 var RED = 0xFF4136;
 var BLUE = 0x0074D9;
 var GREY = 0xFFFFFF;
-var BLOCK = 0xFFFFFF;
+var BLOCK = 'BLOCK';
 
 var playerMoveSpeed = 200;
 var roundTime = 100;
@@ -22,6 +22,7 @@ var gameplay = {
   },
   setTileAffinity: function(x, y, color, animate) {
     if (x < 0 || x >= 16 || y < 0 || y >= 12) { return; }
+    if (this.tilemap[x][y].color === BLOCK) { return; }
 
     if (!animate) {
       this.tilemap[x][y].color = color;
@@ -60,6 +61,8 @@ var gameplay = {
   create: function() {
     this.game.stage.backgroundColor = '#363636';
 
+    this.walls = this.game.add.group();
+
     this.flipcards = this.game.add.group();
 
     this.mapStartSpot = new Phaser.Point(64, 78);
@@ -79,10 +82,41 @@ var gameplay = {
       this.timeRemainingText.text = this.secondsLeft.toString();
     }, this);
 
+    var counter = 5;
     this.tilemap = [];
     for (var i = 0; i < 16; i++) {
       this.tilemap.push([]);
       for (var j = 0; j < 12; j++) {
+        if (((i === 16 / 2 - 1 || i === 16 / 2) && (j === 2 || j === 3)) || ((i === 16 / 4 - 1 || i === 16 / 4) && (j === 8 || j === 9)) || ((i === 16 / 4 * 3 - 1 || i === 16 / 4 * 3) && (j === 8 || j === 9))) {
+          var card = this.game.add.sprite(this.mapStartSpot.x + i * 32 + 16, this.mapStartSpot.y + j * 32 + 16, 'blocks', counter);
+          card.anchor.setTo(0.5, 0.5);
+          this.flipcards.addChild(card);
+          this.tilemap[i].push({
+            color: BLOCK,
+            sprite: card
+          });
+          this.game.physics.enable(card, Phaser.Physics.ARCADE);
+          this.walls.addChild(card);
+          this.walls.addToHash(card);
+          card.body.immovable = true;
+
+          switch (counter) {
+            case 5:
+              counter = 13;
+              break;
+            case 7:
+              counter = 15;
+              break;
+            case 13:
+              counter = 7;
+              break;
+            case 15:
+              counter = 5;
+              break;
+          }
+          continue;
+        }
+
         var card = this.game.add.sprite(this.mapStartSpot.x + i * 32 + 16, this.mapStartSpot.y + j * 32 + 16, 'blocks', 1);
         card.anchor.setTo(0.5, 0.5);
         this.flipcards.addChild(card);
@@ -141,7 +175,6 @@ var gameplay = {
       this.flipTileAffinity(~~((this.player2.x - this.mapStartSpot.x) / 32) + 1, ~~((this.player2.y - this.mapStartSpot.y) / 32), BLUE);
     }, this);
 
-    this.walls = this.game.add.group();
     for (var i = 0; i < 16; i++) {
       var w = this.game.add.sprite(this.mapStartSpot.x + i * 32, this.mapStartSpot.y - 32, 'blocks', 14);
       this.game.physics.enable(w, Phaser.Physics.ARCADE);
