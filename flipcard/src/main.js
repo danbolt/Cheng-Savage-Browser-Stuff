@@ -334,7 +334,7 @@ gameplay.prototype = {
 };
 
 var main = function() {
-  var game = new Phaser.Game(640, 480, Phaser.AUTO, '', null, false, null, true, Phaser.Physics.ARCADE);
+  var game = new Phaser.Game(640, 480, Phaser.AUTO, 'gamewindow', null, false, null, true, Phaser.Physics.ARCADE);
 
   game.state.add('preload', preload, false);
   game.state.add('gameOver', gameOver, false);
