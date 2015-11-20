@@ -6,8 +6,23 @@ var BLOCK = 'BLOCK';
 var playerMoveSpeed = 200;
 var roundTime = 100;
 
-var gameplay = {
+var preload = function() {};
+preload.prototype = {
+  preload: function() {
+    this.game.load.spritesheet('blocks', 'asset/testmap.png', 32, 32);
+  },
+  create: function() {
+    this.game.state.start('gameplay', true, false);
+  }
+};
 
+var title = function() {};
+title.prototype = {
+  //
+};
+
+var gameplay = function() {};
+gameplay.prototype = {
   flipTileAffinity: function(x, y, prefferedColour) {
     if (x < 0 || x >= 16 || y < 0 || y >= 12) { return; }
 
@@ -55,9 +70,6 @@ var gameplay = {
     }
   },
 
-  preload: function() {
-    this.game.load.spritesheet('blocks', 'asset/testmap.png', 32, 32);
-  },
   create: function() {
     this.game.stage.backgroundColor = '#363636';
 
@@ -237,8 +249,6 @@ var gameplay = {
     } else {
       this.player2.body.velocity.y = 0;
     }
-    //this.p2Emitter.setXSpeed(0, -this.player2.body.velocity.x);
-    //this.p2Emitter.setYSpeed(0, -this.player2.body.velocity.y);
 
     // tally up the scores
     var redCount = 0;
@@ -262,5 +272,10 @@ var gameplay = {
 };
 
 var main = function() {
-  var game = new Phaser.Game(640, 480, Phaser.AUTO, '', gameplay, false, null, true, Phaser.Physics.ARCADE);
+  var game = new Phaser.Game(640, 480, Phaser.AUTO, '', null, false, null, true, Phaser.Physics.ARCADE);
+
+  game.state.add('preload', preload, false);
+  game.state.add('title', title, false);
+  game.state.add('gameplay', gameplay, false);
+  game.state.start('preload');
 };
