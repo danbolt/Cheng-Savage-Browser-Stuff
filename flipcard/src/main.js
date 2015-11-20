@@ -207,7 +207,7 @@ gameplay.prototype = {
     this.player1.anchor.setTo(0.5, 0.5);
     this.game.physics.enable(this.player1, Phaser.Physics.ARCADE);
 
-    this.player1Button = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    this.player1Button = this.game.input.keyboard.addKey(Phaser.Keyboard.M);
     this.player1Button.onDown.add(function () {
       if (this.betweenRounds) { return; }
 
