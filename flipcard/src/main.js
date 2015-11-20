@@ -83,11 +83,12 @@ gameplay.prototype = {
     }
   },
   timeLoopFunction: function() {
+    if (this.betweenRounds) { return; }
+
     this.secondsLeft--;
 
     if (this.secondsLeft < 0) {
       this.secondsLeft = roundTime;
-      this.game.time.events.remove(this.timeLoop);
       this.betweenRounds = true;
       this.resultText.visible = true;
       this.resultText.text = this.redCount === this.blueCount ? 'TIE' : (this.redCount > this.blueCount ? 'RED HAS MORE' : 'BLUE HAS MORE');
@@ -98,7 +99,6 @@ gameplay.prototype = {
         this.round++;
 
         this.game.time.events.add(2000, function () {
-          this.game.time.events.loop(1000, this.timeLoopFunction, this);
           this.betweenRounds = false;
           this.resultText.visible = false;
         }, this);
