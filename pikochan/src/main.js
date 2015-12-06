@@ -61,6 +61,9 @@ Gameplay.prototype = {
   pointerDown: null,
   pointerDownTime: -1,
 
+  gameOverText: null,
+  tapToContinueText: null,
+
   spawnNewObstacle: function() {
     var newObstacle = this.obstacles.getFirstDead();
     newObstacle.revive();
@@ -99,6 +102,10 @@ Gameplay.prototype = {
     // controls setup
     this.game.input.maxPointers = 1;
     this.game.input.onDown.add(function(pointer) {
+      if (this.player.alive === false) {
+        return;
+      }
+
       this.pointerDown = pointer;
       this.pointerDownTime = 0;
     }, this);
@@ -118,6 +125,12 @@ Gameplay.prototype = {
         this.pointerDownTime = -1;
       }
     }, this);
+
+    this.gameOverText = this.game.add.text(this.game.width / 6, this.game.height / 4, 'SCORE', {fill: 'white'});
+    this.gameOverText.visible = false;
+
+    this.tapToContinueText = this.game.add.text(this.game.width / 6, this.game.height / 4 + 32, 'tap/click to continue', {fill: 'white'});
+    this.tapToContinueText.visible = false;
   },
 
   update: function() {
@@ -125,7 +138,7 @@ Gameplay.prototype = {
       this.pointerDownTime += this.game.time.physicsElapsed;
     }
 
-    this.timeAlive += this.game.time.physicsElapsed;
+    this.timeAlive += this.player.alive ? this.game.time.physicsElapsed : 0;
 
     this.obstacles.forEachAlive(function(obstacle) {
       if (obstacle.x < -17) {
@@ -134,7 +147,25 @@ Gameplay.prototype = {
     }, this);
 
     this.game.physics.arcade.overlap(this.player, this.obstacles, function (player, obstacle) {
-      this.game.state.start('TitleScreen');
+
+      this.player.kill();
+
+      this.game.time.events.remove(this.obstacleSpawnTimer);
+      this.obstacles.forEachAlive(function(obstacle) {
+        obstacle.body.velocity.setTo(0);
+      });
+
+      this.gameOverText.text = 'Your Score: ' + ~~(this.timeAlive);
+      this.gameOverText.visible = true;
+
+      this.game.time.events.add(500, function() {
+        this.tapToContinueText.visible = true;
+
+        this.game.input.onTap.add(function() {
+          this.game.input.onTap.removeAll();
+          this.game.state.start('TitleScreen');
+        }, this);
+      }, this);
     }, undefined, this);
   },
 
@@ -162,7 +193,6 @@ Gameplay.prototype = {
     this.player = null;
 
     this.obstacles = null;
-    this.game.time.events.remove(this.obstacleSpawnTimer);
     this.obstacleSpawnTimer = null;
 
     this.pointerDown = null;
