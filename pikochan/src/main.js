@@ -121,10 +121,13 @@ Gameplay.prototype = {
   create: function() {
     this.timeAlive = 0;
 
+    this.topBG = this.game.add.tileSprite(0, 0, this.game.width, 16, 'sheet', 25);
+    this.bottomBG = this.game.add.tileSprite(0, this.game.height - 16, this.game.width, 16, 'sheet', 24);
+
     this.timeText = this.game.add.retroFont('font', 8, 8, '!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ', 58, 0, 0);
     this.timeText.text = 'ABCDEFG';
 
-    this.timeTextPicture = this.game.add.image(this.game.world.centerX, 2, this.timeText);
+    this.timeTextPicture = this.game.add.image(this.game.world.centerX, 18, this.timeText);
     this.timeTextPicture.anchor.set(0.5, 0);
 
     this.player = this.game.add.sprite(50, this.game.height / 2, 'sheet', 0);
@@ -208,6 +211,9 @@ Gameplay.prototype = {
     this.playerEmitter.position.setTo(this.player.x - 4, this.player.y - 4);
 
     this.timeAlive += this.player.alive ? this.game.time.physicsElapsed : 0;
+
+    this.topBG.tilePosition.x += this.player.alive ? -0.75 : 0;
+    this.bottomBG.tilePosition.x += this.player.alive ? -0.75 : 0;
 
     this.obstacles.forEachAlive(function(obstacle) {
       if (obstacle.x < -17) {
