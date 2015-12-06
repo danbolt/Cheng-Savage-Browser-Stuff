@@ -1,3 +1,50 @@
+var Preload = function() {};
+Preload.prototype = {
+  init: function() {
+  },
+  preload: function() {
+    //
+  },
+  create: function() {
+    this.game.stage.backgroundColor = '#001933';
+
+    this.game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+    this.game.scale.refresh();
+
+    this.game.scale.pageAlignHorizontally = true;
+    this.game.scale.pageAlignVertically = true;
+
+    this.game.stage.smoothed = false;
+
+    PIXI.scaleModes.DEFAULT = PIXI.scaleModes.NEAREST; //for WebGL
+
+    this.game.state.start('Load');
+  }
+};
+
+var Load = function() {};
+Load.prototype = {
+  preload: function() {
+    //
+  },
+  create: function() {
+    this.game.state.start('TitleScreen');
+  }
+};
+
+var TitleScreen = function() {};
+TitleScreen.prototype = {
+  create: function() {
+    this.game.add.text(this.game.width / 6, this.game.height / 4, 'Piko-chan', {fill: 'white'});
+    this.game.add.text(this.game.width / 6, this.game.height / 4 + 32, 'tap/click to start', {fill: 'white'});
+
+    this.game.input.onTap.add(function() {
+      this.game.input.onTap.removeAll();
+      this.game.state.start('Gameplay');
+    }, this);
+  }
+};
+
 var Gameplay = function() {};
 Gameplay.prototype = {
   timeAlive: 0,
@@ -22,22 +69,11 @@ Gameplay.prototype = {
     newObstacle.body.velocity.x = -1 * this.obstacleSpeed;
   },
 
-  init: function() {
-    this.game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
-    this.game.scale.refresh();
-
-    this.game.stage.smoothed = false;
-
-    PIXI.scaleModes.DEFAULT = PIXI.scaleModes.NEAREST; //for WebGL
-  },
-
   preload: function() {
     //
   },
 
   create: function() {
-    this.game.stage.backgroundColor = '#001933';
-
     this.timeAlive = 0;
 
     this.player = this.game.add.sprite(50, this.game.height / 2, null);
@@ -98,7 +134,7 @@ Gameplay.prototype = {
     }, this);
 
     this.game.physics.arcade.overlap(this.player, this.obstacles, function (player, obstacle) {
-      this.game.state.start('Gameplay');
+      this.game.state.start('TitleScreen');
     }, undefined, this);
   },
 
@@ -136,6 +172,9 @@ Gameplay.prototype = {
 var main = function() {
   var game = new Phaser.Game(284, 160, Phaser.AUTO, '', null, false, false, Phaser.Physics.ARCADE);
 
+  game.state.add('Preload', Preload, false);
+  game.state.add('Load', Load, false);
+  game.state.add('TitleScreen', TitleScreen, false);
   game.state.add('Gameplay', Gameplay, false);
-  game.state.start('Gameplay');
+  game.state.start('Preload');
 }
