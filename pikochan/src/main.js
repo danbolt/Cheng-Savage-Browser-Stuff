@@ -6,7 +6,7 @@ Preload.prototype = {
     }
   },
   preload: function() {
-    //
+    this.game.load.image('font', 'asset/retrofont.png');
   },
   create: function() {
     this.game.stage.backgroundColor = '#191919';
@@ -21,16 +21,27 @@ Preload.prototype = {
 
     PIXI.scaleModes.DEFAULT = PIXI.scaleModes.NEAREST; //for WebGL
 
-    this.game.state.start('Load');
+    var messageText = this.game.add.retroFont('font', 8, 8, '!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ', 58, 0, 0);
+    messageText.text = 'loading...';
+    var messagePicture = this.game.add.image(this.game.world.centerX, this.game.world.centerY, messageText);
+    messagePicture.anchor.set(0.5);
+
+    this.game.state.start('Load', false);
   }
 };
 
 var Load = function() {};
 Load.prototype = {
   preload: function() {
+    this.game.load.audio('bgm', 'asset/bgm.ogg')
+
     this.game.load.spritesheet('sheet', 'asset/sheet.png', 16, 16);
+    this.game.load.image('logo', 'asset/logo.png');
   },
   create: function() {
+    var bgm = this.game.add.audio('bgm', 0.8, true);
+    bgm.play();
+
     this.game.state.start('TitleScreen');
   }
 };
@@ -38,9 +49,29 @@ Load.prototype = {
 var TitleScreen = function() {};
 TitleScreen.prototype = {
   create: function() {
-    this.game.add.text(this.game.width / 6, this.game.height / 4, 'Piko-chan', {fill: 'white'});
-    this.game.add.text(this.game.width / 6, this.game.height / 4 + 32, 'tap/click to start', {fill: 'white'});
-    this.game.add.text(this.game.width / 6, this.game.height / 4 + 64, 'your best: ' + localStorage.getItem('playerBestScore'), {fill: 'white'});
+    var logo = this.game.add.image(this.game.world.centerX, this.game.world.centerY - 32, 'logo');
+    logo.anchor.set(0.5);
+
+    var messages = ['piko-chan',
+                    'click/tap to begin',
+                    'your best score is ' + localStorage.getItem('playerBestScore'),
+                    '(c) daniel savage 2015'];
+
+    for (var i = 0; i < messages.length; i++) {
+      var messageText = this.game.add.retroFont('font', 8, 8, '!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ', 58, 0, 0);
+      messageText.text = messages[i];
+      var messagePicture = this.game.add.image(this.game.world.centerX, this.game.world.centerY + 16 * i, messageText);
+      messagePicture.anchor.set(0.5);
+
+      if (i == messages.length - 1) {
+        messagePicture.x = this.game.width - 2;
+        messagePicture.y = this.game.height - 2;
+        messagePicture.anchor.set(1);
+      }
+    }
+    
+    this.game.add.sprite(this.game.width / 8, this.game.height / 4, 'sheet', 0);
+    this.game.add.sprite(this.game.width / 8 * 7, this.game.height / 4 + this.game.height / 8, 'sheet', 3).scale.x = -1;
 
     this.game.input.onTap.add(function() {
       this.game.input.onTap.removeAll();
@@ -67,8 +98,13 @@ Gameplay.prototype = {
   pointerDown: null,
   pointerDownTime: -1,
 
+  timeText: null,
+  timeTextPicture: null,
+
   gameOverText: null,
+  gameOverTextPicture: null,
   tapToContinueText: null,
+  tapToContinueTextPicture: null,
 
   spawnNewObstacle: function() {
     var newObstacle = this.obstacles.getFirstDead();
@@ -84,6 +120,12 @@ Gameplay.prototype = {
 
   create: function() {
     this.timeAlive = 0;
+
+    this.timeText = this.game.add.retroFont('font', 8, 8, '!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ', 58, 0, 0);
+    this.timeText.text = 'ABCDEFG';
+
+    this.timeTextPicture = this.game.add.image(this.game.world.centerX, 2, this.timeText);
+    this.timeTextPicture.anchor.set(0.5, 0);
 
     this.player = this.game.add.sprite(50, this.game.height / 2, 'sheet', 0);
     this.player.animations.add('flap_down', [0, 1], 6, true);
@@ -143,11 +185,19 @@ Gameplay.prototype = {
       }
     }, this);
 
-    this.gameOverText = this.game.add.text(this.game.width / 6, this.game.height / 4, 'SCORE', {fill: 'white'});
-    this.gameOverText.visible = false;
+    this.gameOverText = this.game.add.retroFont('font', 8, 8, '!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ', 58, 0, 0);
+    this.gameOverText.text = 'GAME OVER';
+    this.gameOverTextPicture = this.game.add.image(this.game.world.centerX, this.game.world.centerY, this.gameOverText);
+    this.gameOverTextPicture.anchor.set(0.5);
+    this.gameOverTextPicture.visible = false;
 
-    this.tapToContinueText = this.game.add.text(this.game.width / 6, this.game.height / 4 + 32, 'tap/click to continue', {fill: 'white'});
-    this.tapToContinueText.visible = false;
+    this.tapToContinueText = this.game.add.retroFont('font', 8, 8, '!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ', 58, 0, 0);
+    this.tapToContinueText.text = 'tap/click to continue';
+    this.tapToContinueTextPicture = this.game.add.image(this.game.world.centerX, this.game.world.centerY + 16, this.tapToContinueText);
+    this.tapToContinueTextPicture.anchor.set(0.5);
+    this.tapToContinueTextPicture.visible = false;
+
+    this.game.world.bringToTop(this.gameOverText);
   },
 
   update: function() {
@@ -164,6 +214,8 @@ Gameplay.prototype = {
         obstacle.kill();
       }
     }, this);
+
+    this.timeText.text = (~~this.timeAlive).toString();
 
     this.player.animations.play(this.player.body.velocity.y > 0 ? 'flap_down' : 'flap_up');
 
@@ -192,10 +244,10 @@ Gameplay.prototype = {
       }
 
       this.gameOverText.text = 'Your Score: ' + ~~(this.timeAlive);
-      this.gameOverText.visible = true;
+      this.gameOverTextPicture.visible = true;
 
       this.game.time.events.add(500, function() {
-        this.tapToContinueText.visible = true;
+        this.tapToContinueTextPicture.visible = true;
 
         this.game.input.onTap.add(function() {
           this.game.input.onTap.removeAll();
@@ -206,13 +258,7 @@ Gameplay.prototype = {
   },
 
   render: function() {
-    this.game.debug.text(~~(this.timeAlive), 0, 16);
-
-    this.obstacles.forEachAlive(function(obstacle) {
-      //this.game.debug.body(obstacle, 'red');
-    }, this);
-
-    if (this.pointerDown) {
+    if (this.pointerDownTime > -1) {
       var deltaX = this.pointerDown.x - this.player.x;
       var deltaY = this.pointerDown.y - this.player.y;
       var angle = Math.atan2(deltaY, deltaX);
@@ -220,6 +266,9 @@ Gameplay.prototype = {
 
       var drawLine = new Phaser.Line(this.player.x, this.player.y, this.player.x + Math.cos(angle) * magnitude,  this.player.y + Math.sin(angle) * magnitude);
       this.game.debug.geom(drawLine, 'white');
+    }
+    else {
+      this.game.debug.reset();
     }
   },
 
