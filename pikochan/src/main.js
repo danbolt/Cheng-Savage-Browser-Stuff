@@ -1,6 +1,9 @@
 var Preload = function() {};
 Preload.prototype = {
   init: function() {
+    if (localStorage.getItem('playerBestScore') === null) {
+      localStorage.setItem('playerBestScore', 0);
+    }
   },
   preload: function() {
     //
@@ -37,6 +40,7 @@ TitleScreen.prototype = {
   create: function() {
     this.game.add.text(this.game.width / 6, this.game.height / 4, 'Piko-chan', {fill: 'white'});
     this.game.add.text(this.game.width / 6, this.game.height / 4 + 32, 'tap/click to start', {fill: 'white'});
+    this.game.add.text(this.game.width / 6, this.game.height / 4 + 64, 'your best: ' + localStorage.getItem('playerBestScore'), {fill: 'white'});
 
     this.game.input.onTap.add(function() {
       this.game.input.onTap.removeAll();
@@ -154,6 +158,10 @@ Gameplay.prototype = {
       this.obstacles.forEachAlive(function(obstacle) {
         obstacle.body.velocity.setTo(0);
       });
+
+      if (~~(this.timeAlive) > localStorage.getItem('playerBestScore')) {
+        localStorage.setItem('playerBestScore', ~~(this.timeAlive));
+      }
 
       this.gameOverText.text = 'Your Score: ' + ~~(this.timeAlive);
       this.gameOverText.visible = true;
