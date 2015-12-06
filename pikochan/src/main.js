@@ -9,7 +9,7 @@ Preload.prototype = {
     //
   },
   create: function() {
-    this.game.stage.backgroundColor = '#001933';
+    this.game.stage.backgroundColor = '#191919';
 
     this.game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
     this.game.scale.refresh();
@@ -28,7 +28,7 @@ Preload.prototype = {
 var Load = function() {};
 Load.prototype = {
   preload: function() {
-    //
+    this.game.load.spritesheet('sheet', 'asset/sheet.png', 16, 16);
   },
   create: function() {
     this.game.state.start('TitleScreen');
@@ -57,6 +57,8 @@ Gameplay.prototype = {
   playerFlySpeed: 60,
   playerChargeTime: 1,
 
+  playerEmitter: null,
+
   obstacles: null,
   obstacleSpawnTimer: null,
   obstacleSpawnInterval: 1000,
@@ -83,16 +85,27 @@ Gameplay.prototype = {
   create: function() {
     this.timeAlive = 0;
 
-    this.player = this.game.add.sprite(50, this.game.height / 2, null);
+    this.player = this.game.add.sprite(50, this.game.height / 2, 'sheet', 0);
+    this.player.animations.add('flap_down', [0, 1], 6, true);
+    this.player.animations.add('flap_up', [2, 3], 6, true);
     this.game.physics.arcade.enable(this.player);
     this.player.body.setSize(16, 16);
     this.player.body.bounce.setTo(0.7);
     this.player.body.collideWorldBounds = true;
     this.player.anchor.setTo(0.5);
+    this.player.body.gravity.y = 20;
+
+    this.playerEmitter = this.game.add.emitter(0, 0, 30);
+    this.playerEmitter.makeParticles('sheet', [9, 10, 11]);
+    this.playerEmitter.setXSpeed(-20, -10);
+    this.playerEmitter.setYSpeed(10, 26);
+    this.playerEmitter.minRotation = 0;
+    this.playerEmitter.maxRotation = 0;
+    this.playerEmitter.flow(200, 500);
 
     this.obstacles = this.game.add.group();
     for (var i = 0; i < 32; i++) {
-      var newObstacle = this.game.add.sprite(16, 16, null);
+      var newObstacle = this.game.add.sprite(16, 16, 'sheet', 19 + ~~(Math.random() * 5));
       newObstacle.x = -1000;
       newObstacle.y = -1000;
       this.game.physics.arcade.enable(newObstacle);
@@ -142,6 +155,8 @@ Gameplay.prototype = {
       this.pointerDownTime += this.game.time.physicsElapsed;
     }
 
+    this.playerEmitter.position.setTo(this.player.x - 4, this.player.y - 4);
+
     this.timeAlive += this.player.alive ? this.game.time.physicsElapsed : 0;
 
     this.obstacles.forEachAlive(function(obstacle) {
@@ -150,9 +165,22 @@ Gameplay.prototype = {
       }
     }, this);
 
+    this.player.animations.play(this.player.body.velocity.y > 0 ? 'flap_down' : 'flap_up');
+
     this.game.physics.arcade.overlap(this.player, this.obstacles, function (player, obstacle) {
 
       this.player.kill();
+      this.playerEmitter.on = false;
+      this.playerEmitter.lifespan = 300;
+      this.playerEmitter.setXSpeed(-50, -50);
+      this.playerEmitter.setYSpeed(-50, -50);
+      this.playerEmitter.emitParticle(undefined, undefined, 'sheet', 8);
+      this.playerEmitter.setYSpeed(50, 50);
+      this.playerEmitter.emitParticle(undefined, undefined, 'sheet', 8);
+      this.playerEmitter.setXSpeed(50, 50);
+      this.playerEmitter.emitParticle(undefined, undefined, 'sheet', 8);
+      this.playerEmitter.setYSpeed(-50, -50);
+      this.playerEmitter.emitParticle(undefined, undefined, 'sheet', 8);
 
       this.game.time.events.remove(this.obstacleSpawnTimer);
       this.obstacles.forEachAlive(function(obstacle) {
@@ -180,10 +208,8 @@ Gameplay.prototype = {
   render: function() {
     this.game.debug.text(~~(this.timeAlive), 0, 16);
 
-    this.game.debug.body(this.player);
-
     this.obstacles.forEachAlive(function(obstacle) {
-      this.game.debug.body(obstacle, 'red');
+      //this.game.debug.body(obstacle, 'red');
     }, this);
 
     if (this.pointerDown) {
