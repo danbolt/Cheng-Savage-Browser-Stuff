@@ -1,11 +1,26 @@
 var Gameplay = function() {};
 Gameplay.prototype = {
+  timeAlive: 0,
+
   player: null,
   playerFlySpeed: 60,
   playerChargeTime: 1,
 
+  obstacles: null,
+  obstacleSpawnTimer: null,
+  obstacleSpawnInterval: 1000,
+  obstacleSpeed: 40,
+
   pointerDown: null,
   pointerDownTime: -1,
+
+  spawnNewObstacle: function() {
+    var newObstacle = this.obstacles.getFirstDead();
+    newObstacle.revive();
+    newObstacle.x = this.game.width;
+    newObstacle.y = Math.random() * this.game.height;
+    newObstacle.body.velocity.x = -1 * this.obstacleSpeed;
+  },
 
   init: function() {
     this.game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
@@ -21,13 +36,31 @@ Gameplay.prototype = {
   },
 
   create: function() {
-    this.player = this.game.add.sprite(16, 16, null);
+    this.game.stage.backgroundColor = '#001933';
+
+    this.timeAlive = 0;
+
+    this.player = this.game.add.sprite(50, this.game.height / 2, null);
     this.game.physics.arcade.enable(this.player);
     this.player.body.setSize(16, 16);
     this.player.body.bounce.setTo(0.7);
     this.player.body.collideWorldBounds = true;
     this.player.anchor.setTo(0.5);
 
+    this.obstacles = this.game.add.group();
+    for (var i = 0; i < 32; i++) {
+      var newObstacle = this.game.add.sprite(16, 16, null);
+      newObstacle.x = -1000;
+      newObstacle.y = -1000;
+      this.game.physics.arcade.enable(newObstacle);
+      newObstacle.body.setSize(16, 16);
+      newObstacle.kill();
+
+      this.obstacles.add(newObstacle);
+    }
+    this.obstacleSpawnTimer = this.game.time.events.loop(this.obstacleSpawnInterval, this.spawnNewObstacle, this);
+
+    // controls setup
     this.game.input.maxPointers = 1;
     this.game.input.onDown.add(function(pointer) {
       this.pointerDown = pointer;
@@ -55,10 +88,28 @@ Gameplay.prototype = {
     if (this.pointerDownTime !== -1) {
       this.pointerDownTime += this.game.time.physicsElapsed;
     }
+
+    this.timeAlive += this.game.time.physicsElapsed;
+
+    this.obstacles.forEachAlive(function(obstacle) {
+      if (obstacle.x < -17) {
+        obstacle.kill();
+      }
+    }, this);
+
+    this.game.physics.arcade.overlap(this.player, this.obstacles, function (player, obstacle) {
+      this.game.state.start('Gameplay');
+    }, undefined, this);
   },
 
   render: function() {
+    this.game.debug.text(~~(this.timeAlive), 0, 16);
+
     this.game.debug.body(this.player);
+
+    this.obstacles.forEachAlive(function(obstacle) {
+      this.game.debug.body(obstacle, 'red');
+    }, this);
 
     if (this.pointerDown) {
       var deltaX = this.pointerDown.x - this.player.x;
@@ -73,12 +124,16 @@ Gameplay.prototype = {
 
   shutdown: function() {
     this.player = null;
-    this.pointerDownPosition = null;
+
+    this.obstacles = null;
+    this.game.time.events.remove(this.obstacleSpawnTimer);
+    this.obstacleSpawnTimer = null;
+
+    this.pointerDown = null;
   }
 };
 
 var main = function() {
-
   var game = new Phaser.Game(284, 160, Phaser.AUTO, '', null, false, false, Phaser.Physics.ARCADE);
 
   game.state.add('Gameplay', Gameplay, false);
