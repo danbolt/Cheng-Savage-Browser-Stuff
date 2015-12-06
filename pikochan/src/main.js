@@ -89,7 +89,7 @@ Gameplay.prototype = {
     this.player.animations.add('flap_down', [0, 1], 6, true);
     this.player.animations.add('flap_up', [2, 3], 6, true);
     this.game.physics.arcade.enable(this.player);
-    this.player.body.setSize(16, 16);
+    this.player.body.setSize(12, 12);
     this.player.body.bounce.setTo(0.7);
     this.player.body.collideWorldBounds = true;
     this.player.anchor.setTo(0.5);
@@ -105,7 +105,7 @@ Gameplay.prototype = {
 
     this.obstacles = this.game.add.group();
     for (var i = 0; i < 32; i++) {
-      var newObstacle = this.game.add.sprite(16, 16, 'sheet', 19 + ~~(Math.random() * 5));
+      var newObstacle = this.game.add.sprite(8, 8, 'sheet', 19 + ~~(Math.random() * 5));
       newObstacle.x = -1000;
       newObstacle.y = -1000;
       this.game.physics.arcade.enable(newObstacle);
