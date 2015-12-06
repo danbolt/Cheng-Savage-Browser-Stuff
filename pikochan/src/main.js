@@ -85,15 +85,15 @@ Gameplay.prototype = {
   timeAlive: 0,
 
   player: null,
-  playerFlySpeed: 60,
+  playerFlySpeed: 70,
   playerChargeTime: 1,
 
   playerEmitter: null,
 
   obstacles: null,
   obstacleSpawnTimer: null,
-  obstacleSpawnInterval: 1000,
-  obstacleSpeed: 40,
+  obstacleSpawnInterval: 850,
+  obstacleSpeed: 60,
 
   pointerDown: null,
   pointerDownTime: -1,
