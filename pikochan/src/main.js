@@ -33,7 +33,7 @@ Preload.prototype = {
 var Load = function() {};
 Load.prototype = {
   preload: function() {
-    this.game.load.audio('bgm', 'asset/bgm.ogg')
+    this.game.load.audio('bgm', ['asset/bgm.m4a', 'asset/bgm.mp3', 'asset/bgm.ogg']);
 
     this.game.load.spritesheet('sheet', 'asset/sheet.png', 16, 16);
     this.game.load.image('logo', 'asset/logo.png');
