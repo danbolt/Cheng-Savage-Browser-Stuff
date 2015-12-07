@@ -33,7 +33,7 @@ Preload.prototype = {
 var Load = function() {};
 Load.prototype = {
   preload: function() {
-    this.game.load.audio('bgm', ['asset/bgm.m4a', 'asset/bgm.mp3', 'asset/bgm.ogg']);
+    this.game.load.audio('bgm', ['asset/bgm.mp3', 'asset/bgm.ogg', 'asset/bgm.m4a']);
 
     this.game.load.spritesheet('sheet', 'asset/sheet.png', 16, 16);
     this.game.load.image('logo', 'asset/logo.png');
@@ -85,7 +85,7 @@ Gameplay.prototype = {
   timeAlive: 0,
 
   player: null,
-  playerFlySpeed: 70,
+  playerFlySpeed: 80,
   playerChargeTime: 1,
 
   playerEmitter: null,
@@ -93,7 +93,7 @@ Gameplay.prototype = {
   obstacles: null,
   obstacleSpawnTimer: null,
   obstacleSpawnInterval: 850,
-  obstacleSpeed: 60,
+  obstacleSpeed: 65,
 
   pointerDown: null,
   pointerDownTime: -1,
